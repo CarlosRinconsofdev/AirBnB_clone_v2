@@ -42,29 +42,36 @@ class DBStorage:
 
     def all(self, cls=None):
         """Return dictionary of models currently in storage"""
-        tdict = {}
-        obj_list = []
-        classes = [State, City, User, Place, Review, Amenity]
+        new_dict = {}
         if cls is not None:
-            obj_list = self.__session.query(cls).all()
+            query_cls = self.session.query(cls).all()
+            for obj in query_cls:
+                key = "{}.{}".format(self.__class__.__name__, obj.id)
+                new_dict[key] = obj
         else:
-            for cls_ in classes:
-                obj_list += self.__session.query(cls_).all()
-        for obj in obj_list:
-            tdict[obj.__class__.__name__ + "." + str(obj.id)] = obj
-        return tdict
+            for value in classes:
+                query = self.__session.query(classes[value]).all()
+                for obj in query:
+                    key = "{}.{}".format(self.__class__.__name__, obj.id)
+                    new_dict[key] = obj
+        return new_dict
 
     def new(self, obj):
+        """ Add the object """
         self.__session.add(obj)
 
     def save(self):
+        """ Commit the database session """
         self.__session.commit()
 
     def delete(self, obj=None):
+        """ Delete  obj if not none """
         if obj is not None:
             self.__session.delete(obj)
 
     def reload(self):
+        """ Create all tables in the database """
         Base.metadata.create_all(self.__engine)
-        session_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
-        self.__session = scoped_session(session_factory)
+        session = sessionmaker(bind=self.__engine, expire_on_commit=False)
+        session = scoped_session(session)
+        self.__session = session()
