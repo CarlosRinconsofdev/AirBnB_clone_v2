@@ -1,25 +1,42 @@
 #!/usr/bin/python3
+"""DBStorage for sqlalchemy"""
 from os import getenv
 from sqlalchemy import create_engine
 from models.user import User
-from models.base_model import Base, BaseModel
+from models.base_model import Base
+from models.base_model import BaseModel
 from models.city import City
 from models.state import State
-from models.place import Place
+from models.place import Place, place_amenity
 from models.amenity import Amenity
 from sqlalchemy.orm import sessionmaker, scoped_session
 from models.review import Review
 
+classes = {
+    'BaseModel': BaseModel,
+    'User': User,
+    'State': State,
+    'Amenity': Amenity,
+    'Place': Place,
+    'City': City,
+    'Review': Review
+}
 
-class DBStorage():
+class DBStorage:
     """ Query on the current database session """
     __engine = None
     __session = None
+    
     def __init__(self):
-         """Initialization of instance of DBStorage"""
-        self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'.format(
-    getenv('HBNB_MYSQL_USER'), getenv('HBNB_MYSQL_PWD'), getenv('HBNB_MYSQL_HOST'), getenv('HBNB_MYSQL_DB')), pool_pre_ping=True)
-
+        """Initialization of data and ENVs"""
+        USER = getenv('HBNB_MYSQL_USER')
+        PWD = getenv('HBNB_MYSQL_PWD')
+        HOST = getenv('HBNB_MYSQL_HOST')
+        DB = getenv('HBNB_MYSQL_DB')
+        
+        self.__engine = create_engine(
+            f'mysql+mysqldb://{USER}:{PWD}@{HOST}/{DB}', pool_pre_ping=True)
+    
         if getenv('HBNB_ENV') == 'test':
             Base.metadata.drop_all(self.__engine)
 
